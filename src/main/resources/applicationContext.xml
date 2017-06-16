@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<!-- 引入外部jdbc属性文件 -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+
+	<context:component-scan base-package="com.shop.*.service.impl" />
+	<context:component-scan base-package="com.shop.*.action" />
+	<context:component-scan base-package="com.shop.*.adminAction" />
+
+	<!-- 配置数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.user}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- <property name="minPoolSize" value="0" />
+		<property name="maxPoolSize" value="15" />
+		<property name="maxIdleTime" value="1800" />
+		当连接池耗尽时候，一次获得连接数
+		<property name="acquireIncrement" value="5" />
+		<property name="maxStatements" value="0" />
+		当连接池连接耗尽时，客户端getConnection(),所等待的时间
+		<property name="idleConnectionTestPeriod" value="120" />
+		当连接失效时，获得连接的次数，0为无限次（重连）
+		<property name="acquireRetryAttempts" value="30" /> -->
+	</bean>
+
+	<!-- sessionFactory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="packagesToScan" value="com.shop.*.entity"></property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.cache.use_second_level_cache">true</prop>
+				<prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory
+				</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+
+	<tx:advice id="txAdvice">
+		<tx:attributes>
+			<tx:method name="*" isolation="READ_COMMITTED" />
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="txPointcut"
+			expression="execution (* com.shop.*.service.impl.*.*(..))" />
+		<aop:pointcut id="basePointcut"
+			expression="execution (* com.core.service.impl.BaseServiceImpl.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="basePointcut" />
+	</aop:config>
+
+
+	<bean id="daoTemplate" abstract="true">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<bean id="userDao" class="com.shop.user.dao.impl.UserDaoImpl"
+		parent="daoTemplate" />
+	<bean id="productDao" class="com.shop.product.dao.impl.ProductDaoImpl"
+		parent="daoTemplate" />
+	<bean id="categoryDao" class="com.shop.category.dao.impl.CategoryDaoImpl"
+		parent="daoTemplate" />
+	<bean id="secondCategoryDao" class="com.shop.secondCategory.dao.impl.SecondCategoryDaoImpl"
+		parent="daoTemplate" />
+	<bean id="orderDao" class="com.shop.order.dao.impl.OrderDaoImpl"
+		parent="daoTemplate" />
+	<bean id="adminUserDao" class="com.shop.adminUser.dao.impl.AdminUserDaoImpl"
+		parent="daoTemplate" />
+
+
+</beans>

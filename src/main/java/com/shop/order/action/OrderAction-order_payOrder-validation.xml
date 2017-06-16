@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC
+  		"-//Apache Struts//XWork Validator 1.0.3//EN"
+  		"http://struts.apache.org/dtds/xwork-validator-1.0.3.dtd">
+<validators>
+	<field name="addr">
+		<field-validator type="requiredstring">
+			<param name="trim">true</param>
+			<message>详细地址不能为空!</message>
+		</field-validator>
+	</field>
+	<field name="name">
+		<field-validator type="requiredstring">
+			<param name="trim">true</param>
+			<message>收货人不能为空!</message>
+		</field-validator>
+	</field>
+	<field name="phone">
+		<field-validator type="requiredstring">
+			<param name="trim">true</param>
+			<message>手机不能为空!</message>
+		</field-validator>
+		<field-validator type="regex">
+			<param name="expression"><![CDATA[(^1\d{10}$)]]></param>
+			<message>手机格式不正确!</message>
+		</field-validator>
+	</field>
+</validators>
